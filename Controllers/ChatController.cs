@@ -16,12 +16,6 @@ namespace webchat.Controllers
             _logger = logger;
         }
 
-        [Route("/getMessages")]
-        public async Task GetMessages()
-        {
-
-        }
-
         [Route("/ws")]
         public async Task Get()
         {

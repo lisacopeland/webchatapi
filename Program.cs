@@ -1,3 +1,6 @@
+using webchat.Models;
+using webchat.Service;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -7,6 +10,9 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.Configure<WsDatabaseSettingsClass>(
+    builder.Configuration.GetSection("MessageDatabase"));
+builder.Services.AddSingleton<MessageService>();
 
 var app = builder.Build();
 
