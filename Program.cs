@@ -13,6 +13,17 @@ builder.Services.AddSwaggerGen();
 builder.Services.Configure<WsDatabaseSettingsClass>(
     builder.Configuration.GetSection("MessageDatabase"));
 builder.Services.AddSingleton<MessageService>();
+builder.Services.AddSingleton<WebSocketService>();
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:4200")
+                                .AllowAnyHeader()
+                                .AllowAnyMethod();
+        });
+});
 
 var app = builder.Build();
 
@@ -32,5 +43,6 @@ app.UseHttpsRedirection();
 app.UseAuthorization();
 
 app.MapControllers();
+app.UseCors();
 
 app.Run();

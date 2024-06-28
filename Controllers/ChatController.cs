@@ -1,6 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using MongoDB.Bson.IO;
 using System.Net.WebSockets;
 using System.Text;
+using webchat.Models;
+using Newtonsoft.Json;
 
 namespace webchat.Controllers
 {
@@ -8,7 +11,6 @@ namespace webchat.Controllers
     [Route("[controller]")]
     public class ChatController : ControllerBase
     {
-
         private readonly ILogger<ChatController> _logger;
 
         public ChatController(ILogger<ChatController> logger)
@@ -21,18 +23,32 @@ namespace webchat.Controllers
         {
             if (HttpContext.WebSockets.IsWebSocketRequest)
             {
-                 using var ws = await HttpContext.WebSockets.AcceptWebSocketAsync();
+                using var ws = await HttpContext.WebSockets.AcceptWebSocketAsync();
                 while (true)
                 {
-                    var message = "The current time is : " + DateTime.Now.ToString("HH:mm:ss");
-                    var bytes = Encoding.UTF8.GetBytes(message);
+                    MessageClass message = new MessageClass()
+                    {
+                        UserName = "Lisa",
+                        Message = $"The current time is : " + DateTime.Now.ToString("HH:mm:ss"),
+                        MessageDate = DateTime.Now
+                    };
+
+                    var messageJson = Newtonsoft.Json.JsonConvert.SerializeObject(message);
+                    var bytes = Encoding.UTF8.GetBytes(messageJson);
                     var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
                     if (ws.State == System.Net.WebSockets.WebSocketState.Open)
                     {
-                        Console.WriteLine($"sending message {message}");
-                        await ws.SendAsync(arraySegment, WebSocketMessageType.Text, true, CancellationToken.None);
+                        Console.WriteLine($"sending message {message.Message}");
+                        await ws.SendAsync(
+                            arraySegment,
+                            WebSocketMessageType.Text,
+                            true,
+                            CancellationToken.None
+                        );
                     }
-                    else if (ws.State == WebSocketState.Closed || ws.State == WebSocketState.Aborted)
+                    else if (
+                        ws.State == WebSocketState.Closed || ws.State == WebSocketState.Aborted
+                    )
                     {
                         break;
                     }

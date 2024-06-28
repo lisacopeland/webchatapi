@@ -9,13 +9,16 @@ namespace webchat.Controllers
     public class MessagesController : ControllerBase
     {
         private readonly MessageService _messageService;
+        private readonly WebSocketService _websocketService;
 
-        public MessagesController(MessageService messageService) =>
+        public MessagesController(MessageService messageService, WebSocketService webSocketService)
+        {
             _messageService = messageService;
+            _websocketService = webSocketService;
+        }
 
         [HttpGet]
-        public async Task<List<MessageClass>> Get() =>
-            await _messageService.GetAsync();
+        public async Task<List<MessageClass>> Get() => await _messageService.GetAsync();
 
         [HttpGet("{id:length(24)}")]
         public async Task<ActionResult<MessageClass>> Get(string id)
@@ -34,7 +37,7 @@ namespace webchat.Controllers
         public async Task<IActionResult> Post(MessageClass newMessageClass)
         {
             await _messageService.CreateAsync(newMessageClass);
-
+            await _websocketService.SendMessageAsync(newMessageClass);
             return CreatedAtAction(nameof(Get), new { id = newMessageClass._id }, newMessageClass);
         }
 
