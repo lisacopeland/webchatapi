@@ -6,12 +6,16 @@ namespace webchat.Service
 {
     public class MessageService
     {
+        private readonly IConfiguration _config;
         private readonly IMongoCollection<MessageClass> _messagesCollection;
         public MessageService(
+            IConfiguration config,
             IOptions<WsDatabaseSettingsClass> wsDatabaseSettingsClass)
         {
+            _config = config;
+            var connectionString = _config["Messages:ConnectionString"];
             var mongoClient = new MongoClient(
-                "mongodb://localhost:27017");
+                connectionString);
 
             var mongoDatabase = mongoClient.GetDatabase(
                 "wschat");

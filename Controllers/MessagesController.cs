@@ -24,21 +24,28 @@ namespace webchat.Controllers
         public async Task<ActionResult<MessageClass>> Get(string id)
         {
             var MessageClass = await _messageService.GetAsync(id);
-
+            ApiResponseClass result;
             if (MessageClass is null)
             {
-                return NotFound();
+                result = new ApiResponseClass { Success = false };
+                result.Message = "Message not found";
+                return BadRequest(result);
             }
 
-            return MessageClass;
+            return new JsonResult(MessageClass);
         }
 
         [HttpPost]
         public async Task<IActionResult> Post(MessageClass newMessageClass)
         {
+            ApiResponseClass result;
             await _messageService.CreateAsync(newMessageClass);
             await _websocketService.SendMessageAsync(newMessageClass);
-            return CreatedAtAction(nameof(Get), new { id = newMessageClass._id }, newMessageClass);
+
+            result = new ApiResponseClass { Success = true };
+            result.Message = "Message created successfully";
+            result.Id = newMessageClass._id;
+            return new JsonResult(result);
         }
 
         [HttpPut("{id:length(24)}")]
