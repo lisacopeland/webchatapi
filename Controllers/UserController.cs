@@ -27,15 +27,21 @@ namespace webchat.Controllers
         public async Task<List<UserClass>> Get() => await _userService.GetAsync();
 
         [HttpPost]
-        public async Task<IActionResult> Post(UserClass newUserClass)
+        public async Task<IActionResult> Post([FromBody] UserClass newUserClass)
         {
             ApiResponseClass result;
             try
             {
-                await _userService.CreateAsync(newUserClass);
-                result = new ApiResponseClass { Success = true };
-                result.Message = "User successfully created";
-                return new JsonResult(result);
+
+                result = await _userService.CreateAsync(newUserClass);
+                if (result.Success)
+                {
+                    return new JsonResult(result);
+                }
+                else
+                {
+                    return BadRequest(result);
+                }
             }
             catch (Exception ex)
             {

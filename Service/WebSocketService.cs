@@ -36,16 +36,6 @@ namespace webchat.Service
             }
         }
 
-        public async Task SendMessageAsync(MessageClass message)
-        {
-            if (_webSocket?.State == WebSocketState.Open)
-            {
-                var messageJson = JsonConvert.SerializeObject(message);
-                var bytes = Encoding.UTF8.GetBytes(messageJson);
-                var arraySegment = new ArraySegment<byte>(bytes, 0, bytes.Length);
-                await _webSocket.SendAsync(arraySegment, WebSocketMessageType.Text, true, _cancellationTokenSource.Token);
-            }
-        }
         public async Task SendMessageAsync(ActionPayload payload)
         {
             if (_webSocket?.State == WebSocketState.Open)

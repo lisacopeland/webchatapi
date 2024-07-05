@@ -46,9 +46,9 @@ namespace webchat.Controllers
 
         [HttpPut]
         [Route("Logout")]
-        public async Task<IActionResult> Logout(string id)
+        public async Task<IActionResult> Logout([FromBody] LogoutClass body)
         {
-            var UserClass = await _userService.GetAsync(id);
+            var UserClass = await _userService.GetAsync(body.Id);
             ApiResponseClass result;
             if (UserClass is null)
             {
@@ -60,12 +60,12 @@ namespace webchat.Controllers
             UserClass.Online = false;
 
             UserId payload = new UserId();
-            payload.id = id;
+            payload.id = body.Id;
             ActionPayload actionPayload = new ActionPayload();
             actionPayload.Action = Constants.userExitedAction;
             actionPayload.Payload = payload;
             await _websocketService.SendMessageAsync(actionPayload);
-            await _userService.UpdateAsync(id, UserClass);
+            await _userService.UpdateAsync(body.Id, UserClass);
 
             result = new ApiResponseClass { Success = true };
             result.Message = "User successfully logged out";

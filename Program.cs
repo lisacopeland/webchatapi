@@ -4,7 +4,6 @@ using webchat.Service;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// mongodb+srv://lisacope:Rivrfish1!@cluster0.mirxmih.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

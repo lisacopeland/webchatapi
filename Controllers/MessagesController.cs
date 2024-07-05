@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using webchat.Models;
 using webchat.Service;
+using webchat.Utilities;
 
 namespace webchat.Controllers
 {
@@ -38,13 +39,18 @@ namespace webchat.Controllers
         [HttpPost]
         public async Task<IActionResult> Post(MessageClass newMessageClass)
         {
+            await _websocketService.AcceptWebSocketAsync(HttpContext);
             ApiResponseClass result;
             await _messageService.CreateAsync(newMessageClass);
-            await _websocketService.SendMessageAsync(newMessageClass);
-
             result = new ApiResponseClass { Success = true };
             result.Message = "Message created successfully";
             result.Id = newMessageClass._id;
+            Message payload = new Message();
+            payload.MessageClass = newMessageClass;
+            ActionPayload actionPayload = new ActionPayload();
+            actionPayload.Action = Constants.userMessageCreatedAction;
+            actionPayload.Payload = payload;
+            await _websocketService.SendMessageAsync(actionPayload);
             return new JsonResult(result);
         }
 

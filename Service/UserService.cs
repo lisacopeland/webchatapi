@@ -8,20 +8,19 @@ namespace webchat.Service
     {
         private readonly IConfiguration _config;
         private readonly IMongoCollection<UserClass> _usersCollection;
+
         public UserService(
             IConfiguration config,
-            IOptions<WsDatabaseSettingsClass> wsDatabaseSettingsClass)
+            IOptions<WsDatabaseSettingsClass> wsDatabaseSettingsClass
+        )
         {
             _config = config;
             var connectionString = _config["Messages:ConnectionString"];
-            var mongoClient = new MongoClient(
-                connectionString);
+            var mongoClient = new MongoClient(connectionString);
 
-            var mongoDatabase = mongoClient.GetDatabase(
-                "wschat");
+            var mongoDatabase = mongoClient.GetDatabase("wschat");
 
-            _usersCollection = mongoDatabase.GetCollection<UserClass>(
-                "users");
+            _usersCollection = mongoDatabase.GetCollection<UserClass>("users");
         }
 
         public async Task<List<UserClass>> GetAsync() =>
@@ -29,15 +28,16 @@ namespace webchat.Service
 
         public async Task<List<UserClass>> GetLoggedInUsersAsync() =>
             await _usersCollection.Find(x => x.Online == true).ToListAsync();
+
         public async Task<UserClass?> GetAsync(string id) =>
             await _usersCollection.Find(x => x._id == id).FirstOrDefaultAsync();
 
         public async Task<UserClass?> GetByUsernameAsync(string userName) =>
             await _usersCollection.Find(x => x.UserName == userName).FirstOrDefaultAsync();
 
-        public async Task<ApiResponseClass> CreateAsync(UserClass newUserClass)
+        public async Task<ApiResponseClass> CreateAsync(UserClass newUser)
         {
-            UserClass user = await GetByUsernameAsync(newUserClass.UserName);
+            UserClass user = await GetByUsernameAsync(newUser.UserName);
             ApiResponseClass result;
             if (user != null)
             {
@@ -45,19 +45,19 @@ namespace webchat.Service
                 result.Message = "User already exists";
                 return result;
             }
-            await _usersCollection.InsertOneAsync(newUserClass);
+            newUser.Online = false;
+            newUser.CreatedDate = DateTime.Now;
+            await _usersCollection.InsertOneAsync(newUser);
             result = new ApiResponseClass { Success = true };
+            result.Id = newUser._id;
             result.Message = "User created successfully";
             return result;
-
         }
-
 
         public async Task UpdateAsync(string id, UserClass updatedUserClass) =>
             await _usersCollection.ReplaceOneAsync(x => x._id == id, updatedUserClass);
 
         public async Task RemoveAsync(string id) =>
             await _usersCollection.DeleteOneAsync(x => x._id == id);
-
     }
 }
