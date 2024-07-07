@@ -39,19 +39,28 @@ namespace webchat.Controllers
         [HttpPost]
         public async Task<IActionResult> Post(MessageClass newMessageClass)
         {
-            await _websocketService.AcceptWebSocketAsync(HttpContext);
             ApiResponseClass result;
-            await _messageService.CreateAsync(newMessageClass);
-            result = new ApiResponseClass { Success = true };
-            result.Message = "Message created successfully";
-            result.Id = newMessageClass._id;
-            Message payload = new Message();
-            payload.MessageClass = newMessageClass;
-            ActionPayload actionPayload = new ActionPayload();
-            actionPayload.Action = Constants.userMessageCreatedAction;
-            actionPayload.Payload = payload;
-            await _websocketService.SendMessageAsync(actionPayload);
-            return new JsonResult(result);
+            try
+            {
+                await _messageService.CreateAsync(newMessageClass);
+                Message payload = new Message();
+                payload.MessageClass = newMessageClass;
+                ActionPayload actionPayload = new ActionPayload();
+                actionPayload.Action = Constants.userMessageCreatedAction;
+                actionPayload.Payload = payload;
+                await _websocketService.AcceptWebSocketAsync(HttpContext);
+                await _websocketService.SendMessageAsync(actionPayload);
+                result = new ApiResponseClass { Success = true };
+                result.Message = "Message created successfully";
+                result.Id = newMessageClass._id;
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                result = new ApiResponseClass { Success = false };
+                result.Message = ex.Message;
+                return BadRequest(result);
+            }
         }
 
         [HttpPut("{id:length(24)}")]

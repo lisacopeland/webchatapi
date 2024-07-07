@@ -9,19 +9,24 @@ namespace webchat.Service
         private readonly IConfiguration _config;
         private readonly IMongoCollection<MessageClass> _messagesCollection;
         public MessageService(
-            IConfiguration config,
-            IOptions<WsDatabaseSettingsClass> wsDatabaseSettingsClass)
+            IConfiguration config)
         {
             _config = config;
-            var connectionString = _config["Messages:ConnectionString"];
-            var mongoClient = new MongoClient(
-                connectionString);
+            try
+            {
+                var connectionString = _config.GetConnectionString("DefaultConnection");
+                var settings = MongoClientSettings.FromConnectionString(connectionString);
+                settings.SslSettings = new SslSettings() { EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 };
 
-            var mongoDatabase = mongoClient.GetDatabase(
-                "wschat");
-
-            _messagesCollection = mongoDatabase.GetCollection<MessageClass>(
-                "wsmessages");
+                var mongoClient = new MongoClient(
+                    settings);
+                var mongoDatabase = mongoClient.GetDatabase("wschat");
+                _messagesCollection = mongoDatabase.GetCollection<MessageClass>("wsmessages");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Caught exception establishing db connection {ex.Message}");
+            }
         }
 
         public async Task<List<MessageClass>> GetAsync() =>

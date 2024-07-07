@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using webchat.Models;
 using webchat.Service;
 
@@ -25,7 +26,8 @@ builder.Services.AddCors(options =>
         });
 });
 
-var dbConnectionString = builder.Configuration["Messages:ConnectionString"];
+// var dbConnectionString = builder.Configuration["Messages:ConnectionString"];
+var dbConnectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 var app = builder.Build();
 
